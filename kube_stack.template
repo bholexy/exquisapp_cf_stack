@@ -45,16 +45,18 @@ Resources:
               yum -y install epel-release;
               yum -y update;
               /usr/bin/sed -i -e 's/PasswordAuthentication\ no/PasswordAuthentication\ yes/g' /etc/ssh/sshd_config;
+              /usr/bin/systemctl restart sshd.service;
               useradd exquisapp;
               echo $SSHPass | passwd exquisapp --stdin;
               echo 'exquisapp  ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
-              /usr/bin/systemctl restart sshd.service;
               yum install -y ansible git;
               cd /home/exquisapp;
-              git clone https://github.com/fasugbab/exquisapp_kube_cluster.git;
+              git clone https://github.com/bholexy/exquisapp_kube_cluster.git;
               cd /home/exquisapp/exquisapp_kube_cluster/centos;              
               /usr/bin/sed -i -e "s/52.58.40.195/$MasterIP/g" hosts;
               /usr/bin/sed -i -e "s/35.156.42.153/$NodeIP/g" hosts;
+              /usr/bin/sed -i -e "s/linuxjobber/exquisapp/g" hosts;
+              /usr/bin/sed -i -e "s/bolu/$SSHPass/g" hosts;
               ansible-playbook setup_master_node.yml;
               ansible-playbook setup_worker_nodes.yml;
               ansible-playbook main.yml
@@ -91,10 +93,10 @@ Resources:
               yum -y install epel-release;
               yum -y update;
               /usr/bin/sed -i -e 's/PasswordAuthentication\ no/PasswordAuthentication\ yes/g' /etc/ssh/sshd_config;
+              /usr/bin/systemctl restart sshd.service;
               useradd exquisapp;
               echo $SSHPass | passwd exquisapp --stdin;
               echo 'exquisapp  ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
-              /usr/bin/systemctl restart sshd.service;
       Tags:
       - Key: Name
         Value: ProdMaster
@@ -126,10 +128,10 @@ Resources:
               yum -y install epel-release;
               yum -y update;
               /usr/bin/sed -i -e 's/PasswordAuthentication\ no/PasswordAuthentication\ yes/g' /etc/ssh/sshd_config;
+              /usr/bin/systemctl restart sshd.service;
               useradd exquisapp;
               echo $SSHPass | passwd exquisapp --stdin;
               echo 'exquisapp  ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
-              /usr/bin/systemctl restart sshd.service;
 
       Tags:
       - Key: Name
