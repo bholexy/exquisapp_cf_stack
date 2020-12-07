@@ -6,14 +6,11 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Private VPC and resources for PROD."
 
 Parameters:
-  MasterElasticIP:
-    Type: String
-  NodeElasticIP:
-    Type: String
   SSHPass:
     Type: String
-  KeyPair:
-    Type: String
+  SshKeyParameter:
+    Description: SSH SshKeyParameter to login to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
 
 
 Resources:
@@ -26,7 +23,7 @@ Resources:
     Properties:
       ImageId: "ami-3ecc8f46"
       InstanceType: "t2.small"
-      KeyName: !Ref 'KeyPair'
+      KeyName: !Ref 'SshKeyParameter'
       SubnetId: !Ref mySubnet
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
@@ -54,8 +51,9 @@ Resources:
               /usr/bin/systemctl restart sshd.service;
               yum install -y ansible git;
               cd /home/exquisapp;
-              git clone https://gitlab.com/fasugbab/exquisapp_kube_cluster.git;
-              cd /home/exquisapp/exquisapp_kube_cluster/centos;              /usr/bin/sed -i -e "s/52.58.40.195/$MasterIP/g" hosts;
+              git clone https://github.com/fasugbab/exquisapp_kube_cluster.git;
+              cd /home/exquisapp/exquisapp_kube_cluster/centos;              
+              /usr/bin/sed -i -e "s/52.58.40.195/$MasterIP/g" hosts;
               /usr/bin/sed -i -e "s/35.156.42.153/$NodeIP/g" hosts;
               ansible-playbook setup_master_node.yml;
               ansible-playbook setup_worker_nodes.yml;
@@ -73,7 +71,7 @@ Resources:
     Properties:
       ImageId: "ami-3ecc8f46"
       InstanceType: "t2.small"
-      KeyName: !Ref 'KeyPair'
+      KeyName: !Ref 'SshKeyParameter'
       SubnetId: !Ref mySubnet
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
@@ -108,11 +106,12 @@ Resources:
     Properties:
       ImageId: "ami-3ecc8f46"
       InstanceType: "t2.small"
-      KeyName: !Ref 'KeyPair'
+      KeyName: !Ref 'SshKeyParameter'
       SubnetId: !Ref mySubnet
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
-          Ebs:
+          Ebs: cat /etc/sudoers
+
             VolumeType: "gp2"
             #Iops: "200"
             DeleteOnTermination: "true"
@@ -123,12 +122,13 @@ Resources:
         Fn::Base64:                                # YAML makes userdata much cleaner
           !Sub |
               #!/bin/bash -ex
+              SSHPass=${SSHPass}  
               /usr/bin/hostnamectl set-hostname ProdNode;
               yum -y install epel-release;
               yum -y update;
               /usr/bin/sed -i -e 's/PasswordAuthentication\ no/PasswordAuthentication\ yes/g' /etc/ssh/sshd_config;
               useradd exquisapp;
-              echo '8iu7*IU&' | passwd exquisapp --stdin;
+              echo $SSHPass | passwd exquisapp --stdin;
               echo 'exquisapp  ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
               /usr/bin/systemctl restart sshd.service;
 
@@ -138,17 +138,16 @@ Resources:
       SecurityGroupIds:
       - !Ref InstanceSecurityGroup
 
-  AssocMElasticIP:
-    Type: AWS::EC2::EIPAssociation
+  MasterElasticIP:
+    Type: AWS::EC2::EIP
     Properties:
-      InstanceId: !Ref 'MyEC2Instance'
-      EIP: !Ref 'MasterElasticIP'
+      InstanceId: !Ref MyEC2Instance
+    
 
-  AssocNElasticIP:
-    Type: AWS::EC2::EIPAssociation
+  NodeElasticIP:
+    Type: AWS::EC2::EIP
     Properties:
-      InstanceId: !Ref 'MyNodeEC2Instance'
-      EIP: !Ref 'NodeElasticIP'
+      InstanceId: !Ref MyNodeEC2Instance
 
 
   myVPC:
@@ -322,4 +321,5 @@ Outputs:
   NPublicIp:
     Value: !GetAtt MyNodeEC2Instance.PublicIp  
   WPublicIP:
-    Value: !GetAtt MyWorkBenchEC2Instance.PublicIp
+    Value: !GetAtt MyWorkBenchEC2Instance.PublicIp 
+
