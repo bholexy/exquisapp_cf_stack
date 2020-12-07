@@ -110,8 +110,7 @@ Resources:
       SubnetId: !Ref mySubnet
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
-          Ebs: cat /etc/sudoers
-
+          Ebs:
             VolumeType: "gp2"
             #Iops: "200"
             DeleteOnTermination: "true"
@@ -122,7 +121,7 @@ Resources:
         Fn::Base64:                                # YAML makes userdata much cleaner
           !Sub |
               #!/bin/bash -ex
-              SSHPass=${SSHPass}  
+              SSHPass=${SSHPass}
               /usr/bin/hostnamectl set-hostname ProdNode;
               yum -y install epel-release;
               yum -y update;
