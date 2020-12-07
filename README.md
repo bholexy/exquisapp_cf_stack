@@ -12,5 +12,11 @@ SSHPass: SSH password to login into the VMs, username is exquisapp
 
 Create stack
 
-Confirm deployment on your browser on <NodeElasticIP:30700>
+Check the output to get output parameter such as MasterIP, NodeIP, WorkbenchIP
+
+Login to the master VM with username as "exquisapp" and password supplied at stack creation runtime
+
+run "kubectl get nodes to confirm the the worker node joined to the cluster"
+
+
 
